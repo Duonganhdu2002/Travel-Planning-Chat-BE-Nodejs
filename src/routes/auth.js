@@ -37,14 +37,14 @@ router.post("/login", async (req, res) => {
       return res.status(401).send("Invalid username or password");
     }
     const token = jwt.sign({ userId: user._id, username: user.username }, "secretkey", {
-      expiresIn: "1h",
+      expiresIn: "1h", 
     });
 
     // Save the token in the Tokens collection
     const tokenDocument = new Token({
       userId: user._id,
       token: token,
-      expiresIn : new Date(Date.now())
+      expiresIn : new Date(Date.now() + 3600000) 
     });
     await tokenDocument.save();
 
