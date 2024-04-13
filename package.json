@@ -1,11 +1,19 @@
 {
+  "dependencies": {
+    "dotenv": "^16.4.5",
+    "ejs": "^3.1.10",
+    "express": "^4.19.2",
+    "mongodb": "^6.5.0",
+    "mongoose": "^8.3.1",
+    "nodemon": "^3.1.0"
+  },
+  "scripts": {
+    "dev": "nodemon src/server.js"
+  },
   "name": "travel_server",
   "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
+  "description": "Travel server app",
+  "main": "server.js",
   "author": "Wydanhdu",
   "license": "ISC"
 }
