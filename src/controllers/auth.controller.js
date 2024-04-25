@@ -9,6 +9,7 @@ var bcrypt = require("bcryptjs");
 exports.signup = async (req, res) => {
   try {
     const user = new User({
+      id: req.body.id,
       username: req.body.username,
       email: req.body.email,
       password: bcrypt.hashSync(req.body.password, 8),
@@ -27,21 +28,36 @@ exports.signup = async (req, res) => {
     user.roles = roles.map((role) => role._id);
     await user.save();
 
-    res.status(201).send({ message: "User was registered successfully!" });
+    res.status(201).send({
+      message: "Success",
+      data: {
+        id: user.id, 
+        username: req.body.username,
+        email: req.body.email,
+      },
+    });
   } catch (err) {
-    res.status(500).send({ message: err.message || "Some error occurred while registering the user." });
+    res.status(500).send({
+      message: err.message || "Some error occurred while registering the user.",
+    });
   }
 };
 
 exports.signin = async (req, res) => {
   try {
-    const user = await User.findOne({ username: req.body.username }).populate("roles", "-__v");
+    const user = await User.findOne({
+      email: req.body.email,
+      id: req.body.id,
+    }).populate("roles", "-__v");
 
     if (!user) {
       return res.status(404).send({ message: "User Not found." });
     }
 
-    const passwordIsValid = bcrypt.compareSync(req.body.password, user.password);
+    const passwordIsValid = bcrypt.compareSync(
+      req.body.password,
+      user.password
+    );
 
     if (!passwordIsValid) {
       return res.status(401).send({
@@ -56,7 +72,9 @@ exports.signin = async (req, res) => {
       expiresIn: 86400, // 24 hours
     });
 
-    const authorities = user.roles.map((role) => "ROLE_" + role.name.toUpperCase());
+    const authorities = user.roles.map(
+      (role) => "ROLE_" + role.name.toUpperCase()
+    );
 
     res.status(200).send({
       id: user._id,
@@ -66,6 +84,8 @@ exports.signin = async (req, res) => {
       accessToken: token,
     });
   } catch (err) {
-    res.status(500).send({ message: err.message || "Some error occurred while signing in." });
+    res.status(500).send({
+      message: err.message || "Some error occurred while signing in.",
+    });
   }
 };
