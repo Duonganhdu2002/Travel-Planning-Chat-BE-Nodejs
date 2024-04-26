@@ -31,7 +31,7 @@ exports.signup = async (req, res) => {
     res.status(201).send({
       message: "Success",
       data: {
-        id: user.id, 
+        id: user.id,
         username: req.body.username,
         email: req.body.email,
       },
@@ -47,7 +47,6 @@ exports.signin = async (req, res) => {
   try {
     const user = await User.findOne({
       email: req.body.email,
-      id: req.body.id,
     }).populate("roles", "-__v");
 
     if (!user) {
@@ -86,6 +85,29 @@ exports.signin = async (req, res) => {
   } catch (err) {
     res.status(500).send({
       message: err.message || "Some error occurred while signing in.",
+    });
+  }
+};
+
+exports.getUserInfo = async (req, res) => {
+  try {
+    const userId = req.userId; 
+
+    const user = await User.findById(userId).populate("roles", "-__v");
+
+    if (!user) {
+      return res.status(404).send({ message: "User Not found." });
+    }
+
+    res.status(200).send({
+      id: user._id,
+      username: user.username,
+      email: user.email,
+      roles: user.roles.map((role) => role.name),
+    });
+  } catch (err) {
+    res.status(500).send({
+      message: err.message || "Some error occurred while fetching user info.",
     });
   }
 };
