@@ -1,10 +1,16 @@
 const config = require("../config/auth.config");
+require("dotenv").config();
 const db = require("../models");
+const nodemailer = require("nodemailer");
 const User = db.user;
 const Role = db.role;
 
 var jwt = require("jsonwebtoken");
 var bcrypt = require("bcryptjs");
+
+const email = process.env.EMAIL;
+const password = process.env.PASSWORD;
+const host = process.env.HOST_MAIL;
 
 exports.signup = async (req, res) => {
   try {
@@ -89,25 +95,44 @@ exports.signin = async (req, res) => {
   }
 };
 
-exports.getUserInfo = async (req, res) => {
+exports.forgotPassword = async (req, res) => {
   try {
-    const userId = req.userId; 
-
-    const user = await User.findById(userId).populate("roles", "-__v");
-
+    const user = await User.findOne({ email: req.body.email });
     if (!user) {
-      return res.status(404).send({ message: "User Not found." });
+      return res.status(404).send({ message: "User not found." });
     }
-
-    res.status(200).send({
-      id: user._id,
-      username: user.username,
-      email: user.email,
-      roles: user.roles.map((role) => role.name),
+    const newPassword = Math.random().toString(36).slice(-8);
+    user.password = bcrypt.hashSync(newPassword, 8);
+    await user.save();
+    const transporter = nodemailer.createTransport({
+      host: host,
+      port: 25,
+      auth: {
+        user: email,
+        pass: password,
+      },
+    });
+    const mailOptions = {
+      from: "Cineflix support<support@cineflix.com>",
+      to: user.email,
+      subject: "Wyd Travel Official Reset Password",
+      text: `Your new password is: ${newPassword}`,
+    };
+    transporter.sendMail(mailOptions, (error, info) => {
+      if (error) {
+        console.log(error);
+        return res.status(500).send({ message: "Failed to send email." });
+      } else {
+        console.log("Email sent: " + info.response);
+        return res
+          .status(200)
+          .send({ message: `Email sent with new password: ${newPassword}`  });
+      }
     });
   } catch (err) {
     res.status(500).send({
-      message: err.message || "Some error occurred while fetching user info.",
+      message:
+        err.message || "Some error occurred while processing your request.",
     });
   }
 };
