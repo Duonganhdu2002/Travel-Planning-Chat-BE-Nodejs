@@ -45,7 +45,6 @@ mongoose
     console.log("Connected");
     app.listen(port, () => {
       console.log(`Example app listening on port ${port}`);
-      // Call the `initial` function here
       initial();
     });
   })

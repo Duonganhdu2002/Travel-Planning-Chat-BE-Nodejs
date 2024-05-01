@@ -16,8 +16,11 @@ exports.signup = async (req, res) => {
   try {
     const user = new User({
       id: req.body.id,
+      fullname: "",
       username: req.body.username,
       email: req.body.email,
+      location: "",
+      phone: "",
       password: bcrypt.hashSync(req.body.password, 8),
     });
 
@@ -49,6 +52,22 @@ exports.signup = async (req, res) => {
   }
 };
 
+async function getRoleNames(roleIds) {
+  try {
+    // Query roles from database based on IDs
+    const roles = await Role.find({ _id: { $in: roleIds } });
+
+    // Extract role names from queried roles
+    const roleNames = roles.map(role => role.name);
+
+    return roleNames;
+  } catch (error) {
+    console.error("Error fetching role names:", error);
+    return [];
+  }
+}
+
+
 exports.signin = async (req, res) => {
   try {
     const user = await User.findOne({
@@ -71,11 +90,22 @@ exports.signin = async (req, res) => {
       });
     }
 
-    const token = jwt.sign({ id: user.id }, config.secret, {
-      algorithm: "HS256",
-      allowInsecureKeySizes: true,
-      expiresIn: 86400, // 24 hours
-    });
+    const token = jwt.sign(
+      {
+        id: user.id,
+        fullname: user.fullname,
+        email: user.email,
+        location: user.location,
+        phone: user.phone,
+        roles: await getRoleNames(user.roles),
+      },
+      config.secret,
+      {
+        algorithm: "HS256",
+        allowInsecureKeySizes: true,
+        expiresIn: 86400, // 24 hours
+      }
+    );
 
     const authorities = user.roles.map(
       (role) => "ROLE_" + role.name.toUpperCase()
@@ -83,9 +113,6 @@ exports.signin = async (req, res) => {
 
     res.status(200).send({
       id: user._id,
-      username: user.username,
-      email: user.email,
-      roles: authorities,
       accessToken: token,
     });
   } catch (err) {
@@ -126,7 +153,7 @@ exports.forgotPassword = async (req, res) => {
         console.log("Email sent: " + info.response);
         return res
           .status(200)
-          .send({ message: `Email sent with new password: ${newPassword}`  });
+          .send({ message: `Email sent with new password: ${newPassword}` });
       }
     });
   } catch (err) {
