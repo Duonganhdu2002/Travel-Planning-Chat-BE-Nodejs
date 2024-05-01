@@ -58,7 +58,7 @@ async function getRoleNames(roleIds) {
     const roles = await Role.find({ _id: { $in: roleIds } });
 
     // Extract role names from queried roles
-    const roleNames = roles.map(role => role.name);
+    const roleNames = roles.map((role) => role.name);
 
     return roleNames;
   } catch (error) {
@@ -66,7 +66,6 @@ async function getRoleNames(roleIds) {
     return [];
   }
 }
-
 
 exports.signin = async (req, res) => {
   try {
