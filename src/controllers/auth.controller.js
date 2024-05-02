@@ -21,6 +21,7 @@ exports.signup = async (req, res) => {
       email: req.body.email,
       location: "",
       phone: "",
+      avatar: "User_img.png",
       password: bcrypt.hashSync(req.body.password, 8),
     });
 
@@ -96,6 +97,7 @@ exports.signin = async (req, res) => {
         email: user.email,
         location: user.location,
         phone: user.phone,
+        avatar: user.avatar,
         roles: await getRoleNames(user.roles),
       },
       config.secret,
