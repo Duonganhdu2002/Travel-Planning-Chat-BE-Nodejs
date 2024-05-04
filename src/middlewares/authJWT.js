@@ -23,12 +23,11 @@ verifyToken = (req, res, next) => {
 };
 
 isAdmin = (req, res, next) => {
-  User.findById(req.userId)
+  User.findOne(req.email)
     .then((user) => {
       if (!user) {
         return res.status(404).send({ message: "User Not found." });
       }
-
       Role.find({ _id: { $in: user.roles } })
         .then((roles) => {
           const isAdmin = roles.some((role) => role.name === "admin");
