@@ -94,6 +94,7 @@ exports.signin = async (req, res) => {
       {
         id: user.id,
         fullname: user.fullname,
+        username: user.username,
         email: user.email,
         location: user.location,
         phone: user.phone,
@@ -149,7 +150,7 @@ exports.forgotPassword = async (req, res) => {
     transporter.sendMail(mailOptions, (error, info) => {
       if (error) {
         console.log(error);
-        return res.status(500).send({ message: "Failed to send email." });
+        return res.status(500).send({ message: error });
       } else {
         console.log("Email sent: " + info.response);
         return res
