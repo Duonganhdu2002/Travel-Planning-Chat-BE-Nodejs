@@ -4,13 +4,14 @@ const db = require("../models");
 const nodemailer = require("nodemailer");
 const User = db.user;
 const Role = db.role;
-
+const Otp = require("../models/otp.model");
 var jwt = require("jsonwebtoken");
 var bcrypt = require("bcryptjs");
 
 const email = process.env.EMAIL;
 const password = process.env.PASSWORD;
 const host = process.env.HOST_MAIL;
+const OTP_EXPIRATION_TIME = 300000;
 
 exports.signup = async (req, res) => {
   try {
@@ -27,24 +28,59 @@ exports.signup = async (req, res) => {
 
     await user.save();
 
-    let roles = [];
-    if (req.body.roles) {
-      roles = await Role.find({ name: { $in: req.body.roles } });
-    } else {
-      const role = await Role.findOne({ name: "user" });
-      roles.push(role);
-    }
+    const otp = Math.floor(1000 + Math.random() * 9000); 
+    const otpExpiration = Date.now() + OTP_EXPIRATION_TIME; 
 
-    user.roles = roles.map((role) => role._id);
-    await user.save();
+    await Otp.findOneAndUpdate(
+      { email: user.email },
+      { otp: otp, expiration: otpExpiration },
+      { upsert: true }
+    );
 
-    res.status(201).send({
-      message: "Success",
-      data: {
-        id: user.id,
-        username: req.body.username,
-        email: req.body.email,
+    const transporter = nodemailer.createTransport({
+      host: host,
+      port: 25,
+      auth: {
+        user: email,
+        pass: password,
       },
+    });
+
+    const mailOptions = {
+      from: "Cineflix support<support@cineflix.com>",
+      to: user.email,
+      subject: "OTP Verification for Signup",
+      text: `Your OTP for signup is: ${otp}. This OTP is valid for 5 minutes.`,
+    };
+
+
+    transporter.sendMail(mailOptions, async (error, info) => {
+      if (error) {
+        console.log(error);
+        return res.status(500).send({ message: "Failed to send email." });
+      } else {
+        console.log("Email sent: " + info.response);
+        let roles = [];
+        if (req.body.roles) {
+          roles = await Role.find({ name: { $in: req.body.roles } });
+        } else {
+          const role = await Role.findOne({ name: "user" });
+          roles.push(role);
+        }
+
+        user.roles = roles.map((role) => role._id);
+        await user.save();
+
+        res.status(201).send({
+          message: "Success",
+          data: {
+            id: user.id,
+            username: req.body.username,
+            email: req.body.email,
+          },
+          otp: otp,
+        });
+      }
     });
   } catch (err) {
     res.status(500).send({
