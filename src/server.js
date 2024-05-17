@@ -2,31 +2,26 @@ const express = require("express");
 const cors = require("cors");
 require("dotenv").config();
 const mongoose = require("mongoose");
-const Role = require("./models/role.model"); // Import Role model
 const authRoutes = require("./routes/auth.route"); // Import auth routes
 const userRoutes = require("./routes/user.route"); // Import user routes
+const messageRoutes = require("./routes/message.route"); // Import message routes
+const http = require("http"); // Import http module
+const { Server } = require("socket.io"); // Import socket.io module
 
-const app = express();
+const app = express(); // Create Express app
 
-var corsOptions = {
-  origin: "http://localhost:8081",
-};
-
-app.use(cors(corsOptions));
-
-// parse requests of content-type - application/json
-app.use(express.json());
-
-// parse requests of content-type - application/x-www-form-urlencoded
-app.use(express.urlencoded({ extended: true }));
+app.use(cors({ origin: "http://localhost:8081" }));
+app.use(express.json()); // parse requests of content-type - application/json
+app.use(express.urlencoded({ extended: true })); // parse requests of content-type - application/x-www-form-urlencoded
 
 // Routes
-authRoutes(app);
-userRoutes(app);
+app.use("/auth", authRoutes);
+app.use("/users", userRoutes);
+app.use("/messages", messageRoutes);
 
-// simple route
+// Simple route
 app.get("/", (req, res) => {
-  res.json({ message: "Welcome to bezkoder application." });
+  res.json({ message: "Welcome to the application." });
 });
 
 // set port, listen for requests
@@ -42,29 +37,41 @@ mongoose
     }
   )
   .then(() => {
-    console.log("Connected");
-    app.listen(port, () => {
-      console.log(`Example app listening on port ${port}`);
-      initial();
+    console.log("Connected to MongoDB");
+    const server = http.createServer(app); // Create HTTP server
+    const io = new Server(server, {
+      cors: {
+        origin: "http://localhost:8081",
+        methods: ["GET", "POST"],
+      },
+    }); // Initialize socket.io
+
+    // WebSocket.io logic
+    io.on("connection", (socket) => {
+      console.log("A user connected");
+
+      // Handle incoming messages
+      socket.on("message", (data) => {
+        console.log("Message received:", data);
+
+        // Broadcast the message to all connected clients
+        io.emit("message", data);
+      });
+
+      // Handle disconnection
+      socket.on("disconnect", () => {
+        console.log("A user disconnected");
+      });
+    });
+
+    server.listen(port, () => {
+      // Use server to listen for requests
+      console.log(`Server is running on port ${port}`);
     });
   })
   .catch((err) => {
-    console.error("Error connecting to the database:", err);
+    console.error("Error connecting to MongoDB:", err);
     process.exit(1);
   });
 
-async function initial() {
-  try {
-    const count = await Role.estimatedDocumentCount();
-    if (count === 0) {
-      await Promise.all([
-        new Role({ name: "user" }).save(),
-        new Role({ name: "moderator" }).save(),
-        new Role({ name: "admin" }).save(),
-      ]);
-      console.log("Roles initialized successfully.");
-    }
-  } catch (error) {
-    console.error("Error initializing roles:", error);
-  }
-}
+module.exports = app; // Export Express app
