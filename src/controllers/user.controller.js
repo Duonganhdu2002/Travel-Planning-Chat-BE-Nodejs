@@ -15,6 +15,17 @@ exports.adminBoard = (req, res) => {
 exports.moderatorBoard = (req, res) => {
   res.status(200).send("Moderator Content.");
 };
+
+exports.getAllUsers = (req, res) => {
+  User.find({}, '-password')
+    .then((users) => {
+      res.status(200).send(users);
+    })
+    .catch((err) => {
+      res.status(500).send({ message: "Error retrieving users.", error: err });
+    });
+};
+
 exports.updateUser = (req, res) => {
   const userId = req.body.id;
   const updateData = req.body;
