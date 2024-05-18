@@ -1,14 +1,12 @@
 const mongoose = require('mongoose');
 
-// Định nghĩa schema cho collection "categories"
 const categorySchema = new mongoose.Schema({
+  landmark_id: { type: mongoose.Schema.Types.ObjectId, ref: 'Landmark' },
   name: String,
   description: String,
-  photo: String
+  photos: [String]
 });
 
-// Tạo model từ schema
 const Category = mongoose.model('Category', categorySchema);
 
-// Xuất model để có thể sử dụng trong các module khác
 module.exports = Category;

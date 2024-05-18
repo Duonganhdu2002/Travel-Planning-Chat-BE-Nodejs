@@ -4,21 +4,25 @@ const Conversation = require("../models/conversation.model");
 // Controller to create a new message
 const sendMessage = async (req, res) => {
   try {
-    const { senderId, recivedId, message } = req.body;
+    const { senderId, receivedId, message } = req.body;
+
+    if (!senderId || !receivedId || !message) {
+      return res.status(400).json({ error: "All fields are required" });
+    }
 
     let conversation = await Conversation.findOne({
-      participants: { $all: [senderId, recivedId] },
+      participants: { $all: [senderId, receivedId] },
     });
 
     if (!conversation) {
       conversation = await Conversation.create({
-        participants: [senderId, recivedId],
+        participants: [senderId, receivedId],
       });
     }
 
     const newMessage = new Message({
       senderId,
-      recivedId,
+      receivedId,
       message,
     });
 
@@ -43,6 +47,10 @@ const getMessage = async (req, res) => {
     const conversation = await Conversation.findOne({
       participants: { $all: [senderId, userToChatId] },
     }).populate("messages");
+
+    if (!conversation) {
+      return res.status(404).json({ error: "Conversation not found" });
+    }
 
     res.status(200).json(conversation.messages);
   } catch (error) {
