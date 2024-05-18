@@ -15,9 +15,9 @@ app.use(express.json()); // parse requests of content-type - application/json
 app.use(express.urlencoded({ extended: true })); // parse requests of content-type - application/x-www-form-urlencoded
 
 // Routes
-app.use("/auth", authRoutes);
-app.use("/users", userRoutes);
-app.use("/messages", messageRoutes);
+authRoutes(app);
+userRoutes(app);
+messageRoutes(app);
 
 // Simple route
 app.get("/", (req, res) => {
