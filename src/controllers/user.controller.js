@@ -16,6 +16,31 @@ exports.moderatorBoard = (req, res) => {
   res.status(200).send("Moderator Content.");
 };
 
+exports.getWaitingList = async (req, res) => {
+  const { userId } = req.params; // Lấy userId từ request parameters
+
+  try {
+    // Tìm người dùng theo userId và populate only id and username of users in the waiting list
+    const user = await User.findById(userId).populate(
+      "waiting_list",
+      "id username"
+    );
+    if (!user) {
+      return res.status(404).json({ message: "User not found." });
+    }
+
+    // Phản hồi danh sách waiting_list của người dùng
+    return res.status(200).json({ waiting_list: user.waiting_list });
+  } catch (err) {
+    // Xử lý lỗi nếu có
+    console.error("Error retrieving waiting list:", err);
+    return res.status(500).json({
+      message: "Error retrieving waiting list.",
+      error: err,
+    });
+  }
+};
+
 exports.checkWaitingListStatus = async (req, res) => {
   const { userId1, userId2 } = req.body; // Lấy userId của hai người dùng từ request body
 

@@ -7,6 +7,7 @@ const userRoutes = require("./routes/user.route"); // Import user routes
 const messageRoutes = require("./routes/message.route"); // Import message routes
 const http = require("http"); // Import http module
 const { Server } = require("socket.io"); // Import socket.io module
+const User = require("./models/user.model"); // Import user model
 
 const app = express(); // Create Express app
 
@@ -56,6 +57,84 @@ mongoose
 
         // Broadcast the message to all connected clients
         io.emit("message", data);
+      });
+
+      socket.on("send_friend_request", async (data) => {
+        const { senderId, receiverId } = data;
+
+        try {
+          const sender = await User.findById(senderId);
+          const receiver = await User.findById(receiverId);
+
+          if (sender && receiver) {
+            receiver.waiting_list.push(sender._id);
+            sender.invite_list.push(receiver._id);
+
+            await receiver.save();
+            await sender.save();
+
+            io.to(receiverId).emit("receive_friend_request", {
+              senderId: sender._id,
+              senderUsername: sender.username,
+            });
+          }
+        } catch (error) {
+          console.error("Error sending friend request:", error);
+        }
+      });
+
+      socket.on("accept_friend_request", async (data) => {
+        const { senderId, receiverId } = data;
+
+        try {
+          const sender = await User.findById(senderId);
+          const receiver = await User.findById(receiverId);
+
+          if (sender && receiver) {
+            // Thêm vào danh sách bạn bè của nhau
+            sender.list_friend.push(receiver._id);
+            receiver.list_friend.push(sender._id);
+
+            // Xóa khỏi danh sách chờ và danh sách mời
+            receiver.waiting_list = receiver.waiting_list.filter(
+              (id) => id.toString() !== sender._id.toString()
+            );
+            sender.invite_list = sender.invite_list.filter(
+              (id) => id.toString() !== receiver._id.toString()
+            );
+
+            await sender.save();
+            await receiver.save();
+
+            io.to(senderId).emit("friend_request_accepted", { receiverId });
+          }
+        } catch (error) {
+          console.error("Error accepting friend request:", error);
+        }
+      });
+
+      socket.on("reject_friend_request", async (data) => {
+        const { senderId, receiverId } = data;
+
+        try {
+          const sender = await User.findById(senderId);
+          const receiver = await User.findById(receiverId);
+
+          if (sender && receiver) {
+            // Xóa khỏi danh sách chờ và danh sách mời
+            receiver.waiting_list = receiver.waiting_list.filter(
+              (id) => id.toString() !== sender._id.toString()
+            );
+            sender.invite_list = sender.invite_list.filter(
+              (id) => id.toString() !== receiver._id.toString()
+            );
+
+            await sender.save();
+            await receiver.save();
+          }
+        } catch (error) {
+          console.error("Error rejecting friend request:", error);
+        }
       });
 
       // Handle disconnection

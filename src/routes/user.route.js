@@ -15,6 +15,7 @@ module.exports = function (app) {
   app.post("/api/user/check-friend-status", controller.checkFriendStatus);
   app.post("/api/user/send-friend-request", controller.sendFriendRequest);
   app.post("/api/user/check-wating-list", controller.checkWaitingListStatus);
+  app.get("/api/user/waiting_list/:userId", controller.getWaitingList);
 
   app.get("/api/test/user", [authJwt.verifyToken], controller.userBoard);
   app.patch("/api/test/user_update", controller.updateUser);
