@@ -16,6 +16,34 @@ exports.moderatorBoard = (req, res) => {
   res.status(200).send("Moderator Content.");
 };
 
+exports.checkWaitingListStatus = async (req, res) => {
+  const { userId1, userId2 } = req.body; // Lấy userId của hai người dùng từ request body
+
+  try {
+    // Tìm người dùng thứ hai
+    const user2 = await User.findById(userId2);
+    if (!user2) {
+      return res
+        .status(404)
+        .json({ isInWaitingList: false, message: "User not found." });
+    }
+
+    // Kiểm tra xem userId1 có nằm trong waiting_list của userId2 hay không
+    const isInWaitingList = user2.waiting_list.includes(userId1);
+
+    // Phản hồi kết quả
+    return res.status(200).json({ isInWaitingList: isInWaitingList });
+  } catch (err) {
+    // Xử lý lỗi nếu có
+    console.error("Error checking waiting list status:", err);
+    return res.status(500).json({
+      isInWaitingList: false,
+      message: "Error checking waiting list status.",
+      error: err,
+    });
+  }
+};
+
 exports.sendFriendRequest = async (req, res) => {
   const { userId1, userId2 } = req.body; // Lấy userId của hai người dùng từ request body
 

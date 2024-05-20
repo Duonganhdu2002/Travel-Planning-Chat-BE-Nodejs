@@ -8,7 +8,7 @@ const userSchema = new mongoose.Schema({
   email: { type: String, required: true },
   password: { type: String, required: true },
   phone: String,
-  waiting_list: [{ type: mongoose.Schema.Types.ObjectId, ref: "Planning" }],
+  waiting_list: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
   list_friend: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
   invite_list: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
   book_mark_list: [{ type: mongoose.Schema.Types.ObjectId, ref: "Place" }],
