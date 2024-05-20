@@ -10,6 +10,7 @@ const userSchema = new mongoose.Schema({
   phone: String,
   waiting_list: [{ type: mongoose.Schema.Types.ObjectId, ref: "Planning" }],
   list_friend: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
+  invite_list: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
   book_mark_list: [{ type: mongoose.Schema.Types.ObjectId, ref: "Place" }],
   roles: [
     {
