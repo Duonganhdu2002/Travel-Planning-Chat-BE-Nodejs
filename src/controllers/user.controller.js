@@ -16,6 +16,72 @@ exports.moderatorBoard = (req, res) => {
   res.status(200).send("Moderator Content.");
 };
 
+exports.sendFriendRequest = async (req, res) => {
+  const { userId1, userId2 } = req.body; // Lấy userId của hai người dùng từ request body
+
+  try {
+    // Tìm người dùng thứ nhất
+    const user1 = await User.findById(userId1);
+    if (!user1) {
+      return res.status(404).json({ success: false, result: false });
+    }
+
+    // Tìm người dùng thứ hai
+    const user2 = await User.findById(userId2);
+    if (!user2) {
+      return res.status(404).json({ success: false, result: false });
+    }
+
+    // Kiểm tra xem userId1 đã có trong waiting_list của userId2 chưa
+    if (user2.waiting_list.includes(userId1)) {
+      return res.status(400).json({ success: false, result: false });
+    }
+
+    // Thêm userId1 vào waiting_list của userId2
+    user2.waiting_list.push(userId1);
+    await user2.save();
+
+    // Thêm userId2 vào invite_list của userId1
+    user1.invite_list.push(userId2);
+    await user1.save();
+
+    // Phản hồi thành công
+    return res.status(200).json({ success: true, result: true });
+  } catch (err) {
+    // Xử lý lỗi nếu có
+    console.error("Error sending friend request:", err);
+    return res.status(500).json({ success: false, result: false });
+  }
+};
+
+exports.checkFriendStatus = async (req, res) => {
+  const { userId1, userId2 } = req.body; // Lấy userId của hai người dùng từ request body
+
+  try {
+    // Tìm người dùng thứ nhất
+    const user1 = await User.findById(userId1);
+    if (!user1) {
+      return res
+        .status(404)
+        .json({ areFriends: false, message: "User not found." });
+    }
+
+    // Kiểm tra xem userId2 có nằm trong danh sách bạn của userId1 hay không
+    const isFriend = user1.list_friend.includes(userId2);
+
+    // Phản hồi kết quả
+    return res.status(200).json({ areFriends: isFriend });
+  } catch (err) {
+    // Xử lý lỗi nếu có
+    console.error("Error checking friend status:", err);
+    return res.status(500).json({
+      areFriends: false,
+      message: "Error checking friend status.",
+      error: err,
+    });
+  }
+};
+
 exports.getAllUsers = (req, res) => {
   User.find({}, "-password")
     .then((users) => {

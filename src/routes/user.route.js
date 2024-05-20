@@ -12,6 +12,8 @@ module.exports = function (app) {
 
   app.get("/api/user/all_user", controller.getAllUsers);
   app.get("/api/user/user_detail/:id", controller.getUserById);
+  app.post("/api/user/check-friend-status", controller.checkFriendStatus);
+  app.post("/api/user/send-friend-request", controller.sendFriendRequest);
 
   app.get("/api/test/user", [authJwt.verifyToken], controller.userBoard);
   app.patch("/api/test/user_update", controller.updateUser);
