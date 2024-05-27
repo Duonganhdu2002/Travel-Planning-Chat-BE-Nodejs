@@ -18,6 +18,7 @@ const userSchema = new mongoose.Schema({
       ref: "Role",
     },
   ],
+  isVerified: { type: Boolean, default: false }, // Add this field
 });
 
 const User = mongoose.model("User", userSchema);

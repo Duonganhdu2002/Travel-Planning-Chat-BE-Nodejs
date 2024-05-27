@@ -22,4 +22,5 @@ module.exports = function (app) {
   app.post("/api/auth/signin", controller.signin);
   app.post("/api/auth/signin-admin", [authJwt.isAdmin], controller.signin);
   app.post("/api/auth/forgot-password", controller.forgotPassword);
+  app.post("/api/auth/verify-signup-otp", controller.verifySignupOTP); 
 };

@@ -16,6 +16,31 @@ exports.moderatorBoard = (req, res) => {
   res.status(200).send("Moderator Content.");
 };
 
+exports.getFriendList = async (req, res) => {
+  const { userId } = req.params; // Lấy userId từ request parameters
+
+  try {
+    // Tìm người dùng theo userId và populate danh sách bạn bè
+    const user = await User.findById(userId).populate(
+      "list_friend",
+      "id username avatar"
+    );
+    if (!user) {
+      return res.status(404).json({ message: "User not found." });
+    }
+
+    // Phản hồi danh sách bạn bè của người dùng
+    return res.status(200).json({ friends: user.list_friend });
+  } catch (err) {
+    // Xử lý lỗi nếu có
+    console.error("Error retrieving friends list:", err);
+    return res.status(500).json({
+      message: "Error retrieving friends list.",
+      error: err,
+    });
+  }
+};
+
 exports.getWaitingList = async (req, res) => {
   const { userId } = req.params; // Lấy userId từ request parameters
 
