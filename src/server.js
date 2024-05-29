@@ -46,9 +46,9 @@ mongoose
     io.on("connection", (socket) => {
       console.log("A user connected");
 
-      socket.on("message", (data) => {
-        console.log("Message received:", data);
-        io.emit("message", data);
+      socket.on("join", (userId) => {
+        socket.join(userId);
+        console.log(`User with ID ${userId} joined room ${userId}`);
       });
 
       socket.on("send_friend_request", async (data) => {
@@ -65,8 +65,6 @@ mongoose
             await receiver.save();
             await sender.save();
 
-            // Emit event to specific user by joining them to a room
-            socket.join(receiverId);
             io.to(receiverId).emit("receive_friend_request", {
               senderId: sender._id,
               senderUsername: sender.username,
@@ -74,6 +72,7 @@ mongoose
           }
         } catch (error) {
           console.error("Error sending friend request:", error);
+          socket.emit('friend_request_failed', { error: 'Error sending friend request' });
         }
       });
 
