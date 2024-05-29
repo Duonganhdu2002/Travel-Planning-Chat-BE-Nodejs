@@ -2,33 +2,29 @@ const express = require("express");
 const cors = require("cors");
 require("dotenv").config();
 const mongoose = require("mongoose");
-const authRoutes = require("./routes/auth.route"); // Import auth routes
-const userRoutes = require("./routes/user.route"); // Import user routes
-const messageRoutes = require("./routes/message.route"); // Import message routes
-const http = require("http"); // Import http module
-const { Server } = require("socket.io"); // Import socket.io module
-const User = require("./models/user.model"); // Import user model
+const authRoutes = require("./routes/auth.route");
+const userRoutes = require("./routes/user.route");
+const messageRoutes = require("./routes/message.route");
+const http = require("http");
+const { Server } = require("socket.io");
+const User = require("./models/user.model");
 
-const app = express(); // Create Express app
+const app = express();
 
 app.use(cors({ origin: "http://localhost:8081" }));
-app.use(express.json()); // parse requests of content-type - application/json
-app.use(express.urlencoded({ extended: true })); // parse requests of content-type - application/x-www-form-urlencoded
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 
-// Routes
 authRoutes(app);
 userRoutes(app);
 messageRoutes(app);
 
-// Simple route
 app.get("/", (req, res) => {
   res.json({ message: "Welcome to the application." });
 });
 
-// set port, listen for requests
 const port = process.env.PORT || 8080;
 
-// Connect to the database and start the server
 mongoose
   .connect(
     "mongodb+srv://2154810104:O1hjKUouTN2XHeiO@wydanhdu.ilbkii2.mongodb.net/travel_app?retryWrites=true&w=majority&appName=wydanhdu",
@@ -39,23 +35,19 @@ mongoose
   )
   .then(() => {
     console.log("Connected to MongoDB");
-    const server = http.createServer(app); // Create HTTP server
+    const server = http.createServer(app);
     const io = new Server(server, {
       cors: {
         origin: "http://localhost:8081",
         methods: ["GET", "POST"],
       },
-    }); // Initialize socket.io
+    });
 
-    // WebSocket.io logic
     io.on("connection", (socket) => {
       console.log("A user connected");
 
-      // Handle incoming messages
       socket.on("message", (data) => {
         console.log("Message received:", data);
-
-        // Broadcast the message to all connected clients
         io.emit("message", data);
       });
 
@@ -91,11 +83,9 @@ mongoose
           const receiver = await User.findById(receiverId);
 
           if (sender && receiver) {
-            // Thêm vào danh sách bạn bè của nhau
             sender.list_friend.push(receiver._id);
             receiver.list_friend.push(sender._id);
 
-            // Xóa khỏi danh sách chờ và danh sách mời
             receiver.waiting_list = receiver.waiting_list.filter(
               (id) => id.toString() !== sender._id.toString()
             );
@@ -121,7 +111,6 @@ mongoose
           const receiver = await User.findById(receiverId);
 
           if (sender && receiver) {
-            // Xóa khỏi danh sách chờ và danh sách mời
             receiver.waiting_list = receiver.waiting_list.filter(
               (id) => id.toString() !== sender._id.toString()
             );
@@ -137,14 +126,12 @@ mongoose
         }
       });
 
-      // Handle disconnection
       socket.on("disconnect", () => {
         console.log("A user disconnected");
       });
     });
 
     server.listen(port, "0.0.0.0", () => {
-      // Use server to listen for requests
       console.log(`Server is running on port ${port}`);
     });
   })
@@ -153,4 +140,4 @@ mongoose
     process.exit(1);
   });
 
-module.exports = app; // Export Express app
+module.exports = app;
