@@ -65,6 +65,8 @@ mongoose
             await receiver.save();
             await sender.save();
 
+            // Emit event to specific user by joining them to a room
+            socket.join(receiverId);
             io.to(receiverId).emit("receive_friend_request", {
               senderId: sender._id,
               senderUsername: sender.username,
