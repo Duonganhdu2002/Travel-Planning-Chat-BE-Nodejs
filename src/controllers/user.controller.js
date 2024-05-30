@@ -16,11 +16,11 @@ exports.moderatorBoard = (req, res) => {
   res.status(200).send("Moderator Content.");
 };
 
+
 exports.getFriendList = async (req, res) => {
-  const { userId } = req.params; // Lấy userId từ request parameters
+  const { userId } = req.params;
 
   try {
-    // Tìm người dùng theo userId và populate danh sách bạn bè
     const user = await User.findById(userId).populate(
       "list_friend",
       "id username avatar"
@@ -29,10 +29,8 @@ exports.getFriendList = async (req, res) => {
       return res.status(404).json({ message: "User not found." });
     }
 
-    // Phản hồi danh sách bạn bè của người dùng
     return res.status(200).json({ friends: user.list_friend });
   } catch (err) {
-    // Xử lý lỗi nếu có
     console.error("Error retrieving friends list:", err);
     return res.status(500).json({
       message: "Error retrieving friends list.",
@@ -42,10 +40,9 @@ exports.getFriendList = async (req, res) => {
 };
 
 exports.getWaitingList = async (req, res) => {
-  const { userId } = req.params; // Lấy userId từ request parameters
+  const { userId } = req.params;
 
   try {
-    // Tìm người dùng theo userId và populate only id and username of users in the waiting list
     const user = await User.findById(userId).populate(
       "waiting_list",
       "id username"
@@ -54,10 +51,8 @@ exports.getWaitingList = async (req, res) => {
       return res.status(404).json({ message: "User not found." });
     }
 
-    // Phản hồi danh sách waiting_list của người dùng
     return res.status(200).json({ waiting_list: user.waiting_list });
   } catch (err) {
-    // Xử lý lỗi nếu có
     console.error("Error retrieving waiting list:", err);
     return res.status(500).json({
       message: "Error retrieving waiting list.",
@@ -95,65 +90,62 @@ exports.checkWaitingListStatus = async (req, res) => {
 };
 
 exports.sendFriendRequest = async (req, res) => {
-  const { userId1, userId2 } = req.body; // Lấy userId của hai người dùng từ request body
+  const { senderId, receiverId } = req.body;
 
   try {
-    // Tìm người dùng thứ nhất
-    const user1 = await User.findById(userId1);
-    if (!user1) {
-      return res.status(404).json({ success: false, result: false });
+    const sender = await User.findById(senderId);
+    const receiver = await User.findById(receiverId);
+
+    if (!sender || !receiver) {
+      return res.status(404).json({ message: "User not found." });
     }
 
-    // Tìm người dùng thứ hai
-    const user2 = await User.findById(userId2);
-    if (!user2) {
-      return res.status(404).json({ success: false, result: false });
+    if (receiver.waiting_list.includes(senderId)) {
+      return res.status(400).json({ message: "Friend request already sent." });
     }
 
-    // Kiểm tra xem userId1 đã có trong waiting_list của userId2 chưa
-    if (user2.waiting_list.includes(userId1)) {
-      return res.status(400).json({ success: false, result: false });
-    }
+    receiver.waiting_list.push(senderId);
+    await receiver.save();
 
-    // Thêm userId1 vào waiting_list của userId2
-    user2.waiting_list.push(userId1);
-    await user2.save();
+    sender.invite_list.push(receiverId);
+    await sender.save();
 
-    // Thêm userId2 vào invite_list của userId1
-    user1.invite_list.push(userId2);
-    await user1.save();
-
-    // Phản hồi thành công
-    return res.status(200).json({ success: true, result: true });
+    return res
+      .status(200)
+      .json({ message: "Friend request sent successfully." });
   } catch (err) {
-    // Xử lý lỗi nếu có
     console.error("Error sending friend request:", err);
-    return res.status(500).json({ success: false, result: false });
+    return res.status(500).json({
+      message: "Error sending friend request.",
+      error: err,
+    });
   }
 };
 
 exports.checkFriendStatus = async (req, res) => {
-  const { userId1, userId2 } = req.body; // Lấy userId của hai người dùng từ request body
+  const { userId1, userId2 } = req.body;
 
   try {
-    // Tìm người dùng thứ nhất
     const user1 = await User.findById(userId1);
-    if (!user1) {
-      return res
-        .status(404)
-        .json({ areFriends: false, message: "User not found." });
+    const user2 = await User.findById(userId2);
+
+    if (!user1 || !user2) {
+      return res.status(404).json({ message: "User not found." });
     }
 
-    // Kiểm tra xem userId2 có nằm trong danh sách bạn của userId1 hay không
     const isFriend = user1.list_friend.includes(userId2);
+    const isPending = user2.waiting_list.includes(userId1);
 
-    // Phản hồi kết quả
-    return res.status(200).json({ areFriends: isFriend });
+    if (isFriend) {
+      return res.status(200).json({ status: "friends" });
+    } else if (isPending) {
+      return res.status(200).json({ status: "pending" });
+    } else {
+      return res.status(200).json({ status: "none" });
+    }
   } catch (err) {
-    // Xử lý lỗi nếu có
     console.error("Error checking friend status:", err);
     return res.status(500).json({
-      areFriends: false,
       message: "Error checking friend status.",
       error: err,
     });
