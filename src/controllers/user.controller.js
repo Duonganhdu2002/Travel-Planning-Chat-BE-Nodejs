@@ -16,6 +16,56 @@ exports.moderatorBoard = (req, res) => {
   res.status(200).send("Moderator Content.");
 };
 
+exports.unfriend = async (req, res) => {
+  const { userId, friendId } = req.body;
+
+  try {
+    const user = await User.findById(userId);
+    const friend = await User.findById(friendId);
+
+    if (!user || !friend) {
+      return res.status(404).json({ message: "User not found." });
+    }
+
+    user.list_friend.pull(friendId);
+    friend.list_friend.pull(userId);
+
+    await user.save();
+    await friend.save();
+
+    res.status(200).json({ message: "Unfriended successfully." });
+  } catch (error) {
+    res.status(500).json({ message: "Failed to unfriend user.", error });
+  }
+};
+
+exports.getFriendList = async (req, res) => {
+  const { userId } = req.params;
+
+  try {
+    const user = await User.findById(userId).populate(
+      "list_friend",
+      "id username avatar"
+    );
+    if (!user) {
+      return res.status(404).json({ message: "User not found." });
+    }
+
+    const friends = user.list_friend.map((friend) => ({
+      id: friend._id,
+      username: friend.username,
+      avatar: friend.avatar,
+    }));
+
+    return res.status(200).json(friends);
+  } catch (err) {
+    console.error("Error retrieving friends list:", err);
+    return res.status(500).json({
+      message: "Error retrieving friends list.",
+      error: err,
+    });
+  }
+};
 
 exports.getFriendList = async (req, res) => {
   const { userId } = req.params;

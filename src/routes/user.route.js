@@ -9,10 +9,11 @@ module.exports = function (app) {
     );
     next();
   });
-
+  app.get("/api/user/friends/:userId", controller.getFriendList);
   app.get("/api/user/all_user", controller.getAllUsers);
   app.get("/api/user/user_detail/:id", controller.getUserById);
   app.post("/api/user/check-friend-status", controller.checkFriendStatus);
+  app.post("/api/user/unfriend", controller.unfriend);
   app.post("/api/user/send-friend-request", controller.sendFriendRequest);
   app.post("/api/user/check-wating-list", controller.checkWaitingListStatus);
   app.get("/api/user/waiting_list/:userId", controller.getWaitingList);
