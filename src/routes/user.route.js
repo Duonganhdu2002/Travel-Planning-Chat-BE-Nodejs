@@ -9,6 +9,9 @@ module.exports = function (app) {
     );
     next();
   });
+  
+  app.get("/api/conversations/:userId", controller.getConversations);
+  app.get("/api/messages/:userId/:friendId", controller.messages);
   app.get("/api/user/friends/:userId", controller.getFriendList);
   app.get("/api/user/all_user", controller.getAllUsers);
   app.get("/api/user/user_detail/:id", controller.getUserById);
@@ -17,7 +20,6 @@ module.exports = function (app) {
   app.post("/api/user/send-friend-request", controller.sendFriendRequest);
   app.post("/api/user/check-wating-list", controller.checkWaitingListStatus);
   app.get("/api/user/waiting_list/:userId", controller.getWaitingList);
-  app.get("/api/user/friends/:userId", controller.getFriendList);
 
   app.get("/api/test/user", [authJwt.verifyToken], controller.userBoard);
   app.patch("/api/test/user_update", controller.updateUser);

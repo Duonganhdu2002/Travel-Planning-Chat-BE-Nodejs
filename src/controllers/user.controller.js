@@ -1,4 +1,6 @@
 const User = require("../models/user.model");
+const Message = require("../models/message.model");
+const Conversation = require("../models/conversation.model");
 
 exports.allAccess = (req, res) => {
   res.status(200).send("Public Content.");
@@ -14,6 +16,40 @@ exports.adminBoard = (req, res) => {
 
 exports.moderatorBoard = (req, res) => {
   res.status(200).send("Moderator Content.");
+};
+
+exports.getConversations = async (req, res) => {
+  const { userId } = req.params;
+
+  try {
+    const conversations = await Conversation.find({ participants: userId })
+      .populate("participants", "username avatar")
+      .populate({
+        path: "messages",
+        options: { sort: { createdAt: -1 }, limit: 1 },
+      });
+
+    res.status(200).json(conversations);
+  } catch (error) {
+    console.error("Error fetching conversations:", error);
+    res.status(500).json({ message: "Error fetching conversations", error });
+  }
+};
+
+exports.messages = async (req, res) => {
+  const { userId, friendId } = req.params;
+  try {
+    const messages = await Message.find({
+      $or: [
+        { senderId: userId, recivedId: friendId },
+        { senderId: friendId, recivedId: userId },
+      ],
+    }).sort("createdAt");
+
+    res.status(200).json(messages);
+  } catch (error) {
+    res.status(500).json({ message: "Error fetching messages" });
+  }
 };
 
 exports.unfriend = async (req, res) => {
