@@ -16,8 +16,18 @@ const {
   rejectFriendRequestHandler,
   unfriendHandler,
 } = require("./services/socketHandlers");
+const passport = require("passport");
+const session = require("express-session");
 
 const app = express();
+//session config
+app.use(session({
+  secret: 'keyboard cat',
+  resave: false,
+  saveUninitialized: false,
+}))
+//passport config
+require("./config/passport")(passport);
 
 app.use(cors({ origin: "http://localhost:8081" }));
 app.use(express.json());
@@ -27,12 +37,18 @@ authRoutes(app);
 userRoutes(app);
 messageRoutes(app);
 notificationRoutes(app);
+//route
+app.use("/auth", require("./routes/google.route"));
 
 app.get("/", (req, res) => {
   res.json({ message: "Welcome to the application." });
 });
 
 const port = process.env.PORT || 8080;
+
+//passport middleware
+app.use(passport.initialize);
+app.use(passport.session)
 
 mongoose
   .connect(process.env.MONGO_URI, {
