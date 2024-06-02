@@ -7,6 +7,7 @@ const placeSchema = new mongoose.Schema({
     street: String,
     ward: String,
     district: String,
+    landmark_id: { type: mongoose.Schema.Types.ObjectId, ref: 'Landmark' },
     province_id: { type: mongoose.Schema.Types.ObjectId, ref: 'Province' },
     country_id: { type: mongoose.Schema.Types.ObjectId, ref: 'Country' }
   },

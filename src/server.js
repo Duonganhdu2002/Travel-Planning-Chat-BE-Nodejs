@@ -9,6 +9,10 @@ const userRoutes = require("./routes/user.route");
 const messageRoutes = require("./routes/message.route");
 const notificationRoutes = require("./routes/notification.route");
 const countryRoutes = require("./routes/country.route");
+const provinceRoutes = require("./routes/province.route");
+const landmarkRoutes = require("./routes/landmark.route");
+const categoryRoutes = require("./routes/category.route");
+const placeRoutes = require("./routes/place.route");
 const {
   joinHandler,
   sendMessageHandler,
@@ -39,6 +43,10 @@ userRoutes(app);
 messageRoutes(app);
 notificationRoutes(app);
 countryRoutes(app);
+provinceRoutes(app);
+landmarkRoutes(app);
+categoryRoutes(app);
+placeRoutes(app);
 //route
 app.use("/auth", require("./routes/google.route"));
 
