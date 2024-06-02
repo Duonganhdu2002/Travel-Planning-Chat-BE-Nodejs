@@ -8,6 +8,7 @@ const authRoutes = require("./routes/auth.route");
 const userRoutes = require("./routes/user.route");
 const messageRoutes = require("./routes/message.route");
 const notificationRoutes = require("./routes/notification.route");
+const countryRoutes = require("./routes/country.route");
 const {
   joinHandler,
   sendMessageHandler,
@@ -37,6 +38,7 @@ authRoutes(app);
 userRoutes(app);
 messageRoutes(app);
 notificationRoutes(app);
+countryRoutes(app);
 //route
 app.use("/auth", require("./routes/google.route"));
 
