@@ -1,6 +1,8 @@
 const User = require("../models/user.model");
 const Message = require("../models/message.model");
 const Conversation = require("../models/conversation.model");
+const Place = require("../models/places.model");
+
 
 exports.allAccess = (req, res) => {
   res.status(200).send("Public Content.");
@@ -279,4 +281,30 @@ exports.updateUser = (req, res) => {
     .catch((err) => {
       res.status(500).send({ message: "Error updating user.", error: err });
     });
+};
+
+// Hàm thêm địa điểm vào danh sách bookmark của người dùng
+exports.addBookmark = async (req, res) => {
+  try {
+    const { userId, placeId } = req.body;
+
+    const place = await Place.findById(placeId);
+    if (!place) {
+      return res.status(404).json({ message: 'Place not found' });
+    }
+
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    if (!user.book_mark_list.includes(placeId)) {
+      user.book_mark_list.push(placeId);
+      await user.save();
+    }
+
+    res.status(200).json({ message: 'Place added to bookmarks', user });
+  } catch (error) {
+    res.status(500).json({ message: 'Error adding place to bookmarks', error });
+  }
 };

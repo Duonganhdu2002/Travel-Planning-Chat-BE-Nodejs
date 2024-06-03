@@ -20,6 +20,8 @@ module.exports = function (app) {
   app.post("/api/user/send-friend-request", controller.sendFriendRequest);
   app.post("/api/user/check-wating-list", controller.checkWaitingListStatus);
   app.get("/api/user/waiting_list/:userId", controller.getWaitingList);
+  app.post("/api/user/add-bookmark", controller.addBookmark);
+
 
   app.get("/api/test/user", [authJwt.verifyToken], controller.userBoard);
   app.patch("/api/test/user_update", controller.updateUser);
