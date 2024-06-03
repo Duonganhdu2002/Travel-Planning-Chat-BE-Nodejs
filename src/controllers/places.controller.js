@@ -129,6 +129,9 @@ exports.getTopRatedPlaces = async (req, res) => {
         $sort: { averageRatingRounded: -1 }
       },
       {
+        $limit: 10
+      },
+      {
         $lookup: {
           from: "places",
           localField: "_id",
