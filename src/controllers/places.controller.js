@@ -1,6 +1,10 @@
 const Place = require('../models/places.model'); // Đảm bảo đường dẫn đúng
 const Rating = require('../models/ratings.model'); // Đảm bảo đường dẫn đúng
 const Category = require('../models/categories.model');
+const Landmark = require('../models/landmarks.model');
+const Province = require('../models/provinces.model');
+const Country = require('../models/country.model');
+
 // Hàm lấy ra tất cả place
 exports.getAllPlaces = async (req, res) => {
   try {
@@ -117,7 +121,12 @@ exports.getTopRatedPlaces = async (req, res) => {
         }
       },
       {
-        $sort: { averageRating: -1 }
+        $project: {
+          averageRatingRounded: { $round: ["$averageRating", 1] }
+        }
+      },
+      {
+        $sort: { averageRatingRounded: -1 }
       },
       {
         $lookup: {
@@ -150,7 +159,7 @@ exports.getTopRatedPlaces = async (req, res) => {
           address: "$place.address",
           description: "$place.description",
           photos: "$place.photos",
-          averageRating: 1
+          averageRating: "$averageRatingRounded"
         }
       }
     ]);
@@ -158,5 +167,19 @@ exports.getTopRatedPlaces = async (req, res) => {
     res.status(200).json(topRatedPlaces);
   } catch (error) {
     res.status(500).json({ message: 'Error getting top-rated places', error });
+  }
+};
+
+//Chi tiết place
+exports.getPlaceDetail = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const place = await Place.findById(id);
+    if (!place) {
+      return res.status(404).json({ message: 'Place not found' });
+    }
+    res.status(200).json(place);
+  } catch (error) {
+    res.status(500).json({ message: 'Error getting place details', error });
   }
 };

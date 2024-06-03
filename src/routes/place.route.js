@@ -35,4 +35,7 @@ module.exports = function (app) {
 
   //Route sắp xếp theo trung bình đánh giá giảm dần 
   app.get("/api/places/best-places", controller.getTopRatedPlaces);
+
+  //Route chi tiết 1 địa điểm 
+  app.get("/api/places/places-detail/:id", controller.getPlaceDetail);
 };
