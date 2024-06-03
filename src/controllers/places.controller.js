@@ -174,11 +174,38 @@ exports.getTopRatedPlaces = async (req, res) => {
 exports.getPlaceDetail = async (req, res) => {
   try {
     const { id } = req.params;
-    const place = await Place.findById(id);
+    const place = await Place.findById(id)
+      .populate('category_id')
+      .populate('address.landmark_id')
+      .populate('address.province_id')
+      .populate('address.country_id');
+
     if (!place) {
       return res.status(404).json({ message: 'Place not found' });
     }
-    res.status(200).json(place);
+
+    const categoryName = place.category_id ? place.category_id.name : null;
+    const landmarkName = place.address.landmark_id ? place.address.landmark_id.name : null;
+    const provinceName = place.address.province_id ? place.address.province_id.name : null;
+    const countryName = place.address.country_id ? place.address.country_id.name : null;
+
+    const placeDetail = {
+      _id: place._id,
+      name: place.name,
+      category: categoryName,
+      address: {
+        street: place.address.street,
+        ward: place.address.ward,
+        district: place.address.district,
+        landmark: landmarkName,
+        province: provinceName,
+        country: countryName
+      },
+      description: place.description,
+      photos: place.photos
+    };
+
+    res.status(200).json(placeDetail);
   } catch (error) {
     res.status(500).json({ message: 'Error getting place details', error });
   }
