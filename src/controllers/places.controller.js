@@ -1,5 +1,6 @@
 const Place = require('../models/places.model'); // Đảm bảo đường dẫn đúng
-
+const Rating = require('../models/ratings.model'); // Đảm bảo đường dẫn đúng
+const Category = require('../models/categories.model');
 // Hàm lấy ra tất cả place
 exports.getAllPlaces = async (req, res) => {
   try {
@@ -102,5 +103,60 @@ exports.deletePlace = async (req, res) => {
     res.status(200).json({ message: 'Place deleted successfully' });
   } catch (error) {
     res.status(500).json({ message: 'Error deleting place', error });
+  }
+};
+
+// Hàm lấy danh sách những địa điểm có đánh giá cao nhất
+exports.getTopRatedPlaces = async (req, res) => {
+  try {
+    const topRatedPlaces = await Rating.aggregate([
+      {
+        $group: {
+          _id: "$place_id",
+          averageRating: { $avg: "$rating" }
+        }
+      },
+      {
+        $sort: { averageRating: -1 }
+      },
+      {
+        $lookup: {
+          from: "places",
+          localField: "_id",
+          foreignField: "_id",
+          as: "place"
+        }
+      },
+      {
+        $unwind: "$place"
+      },
+      {
+        $lookup: {
+          from: "categories",
+          localField: "place.category_id",
+          foreignField: "_id",
+          as: "category"
+        }
+      },
+      {
+        $unwind: "$category"
+      },
+      {
+        $project: {
+          _id: 0,
+          place_id: "$place._id",
+          name: "$place.name",
+          category: "$category.name",
+          address: "$place.address",
+          description: "$place.description",
+          photos: "$place.photos",
+          averageRating: 1
+        }
+      }
+    ]);
+
+    res.status(200).json(topRatedPlaces);
+  } catch (error) {
+    res.status(500).json({ message: 'Error getting top-rated places', error });
   }
 };

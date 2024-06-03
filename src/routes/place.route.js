@@ -32,4 +32,7 @@ module.exports = function (app) {
 
   // Route xóa place
   app.delete("/api/places/:id", controller.deletePlace);
+
+  //Route sắp xếp theo trung bình đánh giá giảm dần 
+  app.get("/api/places/best-places", controller.getTopRatedPlaces);
 };
