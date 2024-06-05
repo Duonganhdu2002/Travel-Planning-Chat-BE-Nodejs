@@ -41,5 +41,4 @@ module.exports = function (app) {
 
   //Route tìm kiếm địa điểm
   app.post("/api/places/search", controller.searchPlaces);
-
 };
