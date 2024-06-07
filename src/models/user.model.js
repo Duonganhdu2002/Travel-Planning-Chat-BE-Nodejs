@@ -11,6 +11,7 @@ const userSchema = new mongoose.Schema({
   waiting_list: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
   list_friend: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
   invite_list: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
+  plan_list: [{ type: mongoose.Schema.Types.ObjectId, ref: "Planning" }],
   book_mark_list: [{ type: mongoose.Schema.Types.ObjectId, ref: "Place" }],
   roles: [
     {
