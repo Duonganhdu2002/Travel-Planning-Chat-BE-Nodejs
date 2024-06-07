@@ -346,7 +346,7 @@ exports.addBookmark = async (req, res) => {
       await user.save();
     }
 
-    res.status(200).json({ message: "Place added to bookmarks", user });
+    res.status(200).json({ message: 'Place added to bookmarks', user });
   } catch (error) {
     res.status(500).json({ message: "Error adding place to bookmarks", error });
   }

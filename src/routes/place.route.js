@@ -38,4 +38,7 @@ module.exports = function (app) {
 
   //Route chi tiết 1 địa điểm 
   app.get("/api/places/places-detail/:id", controller.getPlaceDetail);
+
+  //Route tìm kiếm địa điểm
+  app.post("/api/places/search", controller.searchPlaces);
 };

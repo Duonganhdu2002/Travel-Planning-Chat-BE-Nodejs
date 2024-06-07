@@ -113,6 +113,10 @@ exports.deletePlace = async (req, res) => {
 // Hàm lấy danh sách những địa điểm có đánh giá cao nhất
 exports.getTopRatedPlaces = async (req, res) => {
   try {
+    const page = parseInt(req.query.page) || 1; 
+    const limit = parseInt(req.query.limit) || 10; 
+    const skip = (page - 1) * limit; 
+
     const topRatedPlaces = await Rating.aggregate([
       {
         $group: {
@@ -127,6 +131,12 @@ exports.getTopRatedPlaces = async (req, res) => {
       },
       {
         $sort: { averageRatingRounded: -1 }
+      },
+      {
+        $skip: skip 
+      },
+      {
+        $limit: limit 
       },
       {
         $lookup: {
@@ -170,6 +180,7 @@ exports.getTopRatedPlaces = async (req, res) => {
   }
 };
 
+
 //Chi tiết place
 exports.getPlaceDetail = async (req, res) => {
   try {
@@ -208,5 +219,68 @@ exports.getPlaceDetail = async (req, res) => {
     res.status(200).json(placeDetail);
   } catch (error) {
     res.status(500).json({ message: 'Error getting place details', error });
+  }
+};
+
+//Tìm kiếm địa điểm
+exports.searchPlaces = async (req, res) => {
+  try {
+    const { key, page = 1, limit = 10 } = req.body; 
+    const skip = (page - 1) * limit; 
+
+    // Tìm kiếm trong Category
+    const category = await Category.findOne({ name: new RegExp(key, 'i') });
+    if (category) {
+      const places = await Place.find({ category_id: category._id })
+        .populate('category_id', 'name')
+        .populate('address.landmark_id', 'name')
+        .populate('address.province_id', 'name')
+        .populate('address.country_id', 'name')
+        .skip(skip)
+        .limit(limit);
+      return res.status(200).json({ places });
+    }
+
+    // Tìm kiếm trong Landmark
+    const landmark = await Landmark.findOne({ name: new RegExp(key, 'i') });
+    if (landmark) {
+      const places = await Place.find({ 'address.landmark_id': landmark._id })
+        .populate('category_id', 'name')
+        .populate('address.landmark_id', 'name')
+        .populate('address.province_id', 'name')
+        .populate('address.country_id', 'name')
+        .skip(skip)
+        .limit(limit);
+      return res.status(200).json({ landmarks: [landmark], places });
+    }
+
+    // Tìm kiếm trong Province
+    const province = await Province.findOne({ name: new RegExp(key, 'i') });
+    if (province) {
+      const landmarks = await Landmark.find({ province_id: province._id })
+        .skip(skip)
+        .limit(limit);
+      const places = await Place.find({ 'address.province_id': province._id })
+        .populate('category_id', 'name')
+        .populate('address.landmark_id', 'name')
+        .populate('address.province_id', 'name')
+        .populate('address.country_id', 'name')
+        .skip(skip)
+        .limit(limit);
+      return res.status(200).json({ province, landmarks, places });
+    }
+
+    // Tìm kiếm trong Place
+    const places = await Place.find({ name: new RegExp(key, 'i') })
+      .populate('category_id', 'name')
+      .populate('address.landmark_id', 'name')
+      .populate('address.province_id', 'name')
+      .populate('address.country_id', 'name')
+      .skip(skip)
+      .limit(limit);
+
+    res.status(200).json({ places });
+  } catch (error) {
+    res.status(500).json({ message: 'Error searching places', error });
   }
 };
