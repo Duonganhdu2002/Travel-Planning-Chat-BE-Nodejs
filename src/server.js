@@ -14,6 +14,8 @@ const landmarkRoutes = require("./routes/landmark.route");
 const categoryRoutes = require("./routes/category.route");
 const placeRoutes = require("./routes/place.route");
 const ratingRoutes = require("./routes/rating.route");
+const path = require('path');
+
 const {
   joinHandler,
   sendMessageHandler,
@@ -51,6 +53,7 @@ placeRoutes(app);
 ratingRoutes(app);
 //route
 app.use("/auth", require("./routes/google.route"));
+app.use('/public', express.static(path.join(__dirname, 'public')));
 
 app.get("/", (req, res) => {
   res.json({ message: "Welcome to the application." });
