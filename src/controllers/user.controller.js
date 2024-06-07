@@ -2,7 +2,50 @@ const User = require("../models/user.model");
 const Message = require("../models/message.model");
 const Conversation = require("../models/conversation.model");
 const Place = require("../models/places.model");
+const multer = require("multer");
+const path = require("path"); // Thêm dòng này
 
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, "src/public/images/avatars");
+  },
+  filename: (req, file, cb) => {
+    const uniqueSuffix = Date.now() + "-" + Math.round(Math.random() * 1e9);
+    cb(
+      null,
+      file.fieldname + "-" + uniqueSuffix + path.extname(file.originalname)
+    );
+  },
+});
+const upload = multer({ storage: storage });
+
+exports.upload = upload; // Export the upload middleware
+
+exports.uploadAvatar = async (req, res) => {
+  try {
+    const userId = req.body.userId;
+
+    if (!req.file) {
+      return res.status(400).json({ message: "No file uploaded" });
+    }
+
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    // Lưu đường dẫn file avatar vào user
+    user.avatar = req.file.filename;
+    await user.save();
+
+    res
+      .status(200)
+      .json({ message: "Avatar uploaded successfully", avatar: user.avatar });
+  } catch (error) {
+    console.error("Error uploading avatar:", error);
+    res.status(500).json({ message: "Error uploading avatar", error });
+  }
+};
 
 exports.allAccess = (req, res) => {
   res.status(200).send("Public Content.");
@@ -290,12 +333,12 @@ exports.addBookmark = async (req, res) => {
 
     const place = await Place.findById(placeId);
     if (!place) {
-      return res.status(404).json({ message: 'Place not found' });
+      return res.status(404).json({ message: "Place not found" });
     }
 
     const user = await User.findById(userId);
     if (!user) {
-      return res.status(404).json({ message: 'User not found' });
+      return res.status(404).json({ message: "User not found" });
     }
 
     if (!user.book_mark_list.includes(placeId)) {
@@ -303,8 +346,8 @@ exports.addBookmark = async (req, res) => {
       await user.save();
     }
 
-    res.status(200).json({ message: 'Place added to bookmarks', user });
+    res.status(200).json({ message: "Place added to bookmarks", user });
   } catch (error) {
-    res.status(500).json({ message: 'Error adding place to bookmarks', error });
+    res.status(500).json({ message: "Error adding place to bookmarks", error });
   }
 };
