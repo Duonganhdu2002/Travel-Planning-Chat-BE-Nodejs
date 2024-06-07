@@ -195,6 +195,14 @@ exports.getPlaceDetail = async (req, res) => {
       return res.status(404).json({ message: 'Place not found' });
     }
 
+    const ratings = await Rating.find({ place_id: id }).populate('user_id', 'username');
+
+    const ratingDetails = ratings.map(rating => ({
+      user: rating.user_id ? rating.user_id.username : null,
+      rating: rating.rating,
+      comment: rating.comment
+    }));
+
     const categoryName = place.category_id ? place.category_id.name : null;
     const landmarkName = place.address.landmark_id ? place.address.landmark_id.name : null;
     const provinceName = place.address.province_id ? place.address.province_id.name : null;
@@ -213,7 +221,8 @@ exports.getPlaceDetail = async (req, res) => {
         country: countryName
       },
       description: place.description,
-      photos: place.photos
+      photos: place.photos,
+      ratings: ratingDetails 
     };
 
     res.status(200).json(placeDetail);
