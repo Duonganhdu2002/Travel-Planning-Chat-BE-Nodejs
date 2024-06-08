@@ -1,4 +1,4 @@
-const Planning = require('../models/planning.model');
+const Planning = require('../models/plannings.model');
 const User = require('../models/user.model'); 
 
 // Tạo kế hoạch mới

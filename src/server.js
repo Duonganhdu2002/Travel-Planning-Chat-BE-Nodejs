@@ -14,6 +14,7 @@ const landmarkRoutes = require("./routes/landmark.route");
 const categoryRoutes = require("./routes/category.route");
 const placeRoutes = require("./routes/place.route");
 const ratingRoutes = require("./routes/rating.route");
+const planingRoutes = require("./routes/plan.route");
 const path = require('path');
 
 const {
@@ -51,6 +52,7 @@ landmarkRoutes(app);
 categoryRoutes(app);
 placeRoutes(app);
 ratingRoutes(app);
+planingRoutes(app);
 //route
 app.use("/auth", require("./routes/google.route"));
 app.use('/public', express.static(path.join(__dirname, 'public')));
