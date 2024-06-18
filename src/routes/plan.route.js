@@ -11,4 +11,5 @@ module.exports = function (app) {
 
   //Route tìm kiếm địa điểm
   app.post("/api/plan/add", controller.createPlanning);
+  app.get("/api/plan/get-all", controller.getPlannings);
 };
