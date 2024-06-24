@@ -36,15 +36,10 @@ exports.signup = async (req, res) => {
     tempUserStorage[user.email] = user;
 
     const transporter = nodemailer.createTransport({
-      host: host,
-      port: 587,
-      secure: false, // true for 465, false for other ports
+      service: 'gmail',
       auth: {
         user: email,
         pass: password,
-      },
-      tls: {
-        rejectUnauthorized: false,
       },
     });
 
@@ -101,6 +96,7 @@ exports.verifySignupOTP = async (req, res) => {
       username: user.username,
       email: user.email,
       password: user.password,
+      avatar: "User_img.png"
     });
 
     await newUser.save();
@@ -172,8 +168,6 @@ exports.forgotPassword = async (req, res) => {
     });
   }
 };
-
-
 
 async function getRoleNames(roleIds) {
   try {
